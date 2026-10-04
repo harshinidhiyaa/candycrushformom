@@ -221,9 +221,38 @@
     background-position: 90% 0, 0 0, 0 0;
     animation: glint 4s linear infinite; animation-delay: calc(var(--d, 0s) * -1);
   }
+
+  /* ===== Floating background ===== */
+  .panel { position: relative; }
+  .bgfx { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .fx { position: absolute; display: grid; place-items: center; line-height: 1; filter: drop-shadow(0 0 12px rgba(255, 200, 120, .35)); }
+  .fx img { width: 100%; height: 100%; object-fit: contain; }
+  .fx.rise { bottom: -120px; animation: rise linear infinite; }
+  @keyframes rise {
+    0%   { transform: translate(0, 0) rotate(0); }
+    50%  { transform: translate(var(--sway), -55vh) rotate(calc(var(--rot) / 2)); }
+    100% { transform: translate(calc(var(--sway) * -1), -125vh) rotate(var(--rot)); }
+  }
+  .fx.moon { opacity: .85; filter: drop-shadow(0 0 26px rgba(255, 230, 150, .75)); animation: moon 6s ease-in-out infinite alternate; }
+  @keyframes moon { from { transform: translateY(0) rotate(-8deg); } to { transform: translateY(-16px) rotate(8deg); } }
+
+  /* ===== Pictures sit INSIDE the candy as a small badge ===== */
+  :root { --badge-size: 56%; --badge-radius: 50%; }   /* circle: 50%  |  rounded box: 12px */
+  .cell img {
+    position: relative; z-index: 1;
+    width: var(--badge-size); height: var(--badge-size);
+    object-fit: cover; border-radius: var(--badge-radius);
+    border: 2px solid rgba(255,255,255,.95);
+    box-shadow: 0 3px 6px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.25);
+    filter: none;
+  }
+  .cell.bomb img { width: 82%; height: 82%; object-fit: contain; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 3px 3px rgba(0,0,0,.45)); }
 </style>
 </head>
 <body>
+
+  <!-- Floating background: apples, cakes and moons -->
+  <div class="bgfx" id="bgfx"></div>
 
   <!-- Banner: put your photo at images/banner-amma.jpg -->
   <div class="banner">
@@ -547,7 +576,7 @@
     boardEl.innerHTML = grid.map((g, i) => {
       if (!g) return '<div class="cell"></div>';
       const bomb = g.s === 'bomb', c = CANDIES[g.t] || CANDIES[0];
-      const cls = ['cell', bomb ? '' : 't' + g.t, !bomb && imgOK[g.t] ? 'photo' : '', g.s || '', sel === i ? 'sel' : '', popping.has(i) ? 'pop' : ''].join(' ');
+      const cls = ['cell', bomb ? '' : 't' + g.t,  g.s || '', sel === i ? 'sel' : '', popping.has(i) ? 'pop' : ''].join(' ');
       const inner = bomb ? (bombImgOK ? '<img src="images/cake-bomb.png" alt="">' : '<span>🎂</span>') : imgOK[g.t] ? `<img src="${c.img}" alt="">`
         : g.t === 0 ? '<span class="mom">MOM</span>' : `<span>${c.emoji}</span>`;
       return `<div class="${cls}" data-i="${i}" style="--c:${c.color};--d:${((i * 7) % 13) * 0.3}s">${inner}</div>`;
@@ -620,6 +649,28 @@
     musicOn = !musicOn; $('musicBtn').classList.toggle('off', !musicOn);
     musicOn ? startMusic() : stopMusic();
   });
+
+  /* ---- Floating background (optional pictures: images/bg-apple.png, bg-cake.png, bg-moon.png) ---- */
+  (function () {
+    const fx = $('bgfx');
+    const make = (emoji, src, cls, css) => {
+      const d = document.createElement('div');
+      d.className = 'fx ' + cls; d.style.cssText = css;
+      d.innerHTML = `<span>${emoji}</span><img src="${src}" alt="" onload="this.previousElementSibling.style.display='none'" onerror="this.remove()">`;
+      fx.append(d);
+    };
+    make('🌙', 'images/bg-moon.png', 'moon', 'left:5%;top:7%;font-size:90px;width:90px;height:90px');
+    make('🌙', 'images/bg-moon.png', 'moon', 'right:7%;top:32%;font-size:48px;width:48px;height:48px;animation-delay:-3s');
+    const types = ['apple', 'apple', 'cake', 'apple', 'cake', 'apple', 'apple'];
+    for (let i = 0; i < 14; i++) {
+      const t = types[i % 7], size = 34 + Math.random() * 44;
+      const emoji = t === 'cake' ? '🎂' : (i % 2 ? '🍎' : '🍏');
+      make(emoji, `images/bg-${t}.png`, 'rise',
+        `left:${Math.random() * 94}%;font-size:${size}px;width:${size}px;height:${size}px;` +
+        `animation-duration:${16 + Math.random() * 14}s;animation-delay:-${Math.random() * 30}s;` +
+        `--sway:${Math.random() * 60 - 30}px;--rot:${Math.random() * 720 - 360}deg;opacity:${.28 + Math.random() * .3}`);
+    }
+  })();
 
   newGame();
 </script>
