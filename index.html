@@ -133,6 +133,94 @@
   @keyframes beam { 0% { scale: 0 1; opacity: 1; } 35% { scale: 1 1; opacity: 1; } 100% { scale: 1 1; opacity: 0; } }
   .particle { position: fixed; width: 9px; height: 9px; margin: -4px; border-radius: 50%; pointer-events: none; z-index: 40; animation: burst .6s ease-out forwards; }
   @keyframes burst { to { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+
+  /* ===== High-gloss finish ===== */
+  .cell.t0 { --g1: #ff6b90; --g2: #a8002a; }
+  .cell.t1 { --g1: #62b4ff; --g2: #0033a8; }
+  .cell.t2 { --g1: #34f0a0; --g2: #006838; }
+  .cell.t3 { --g1: #ffae3d; --g2: #b83600; }
+  .cell.t4 { --g1: #ffe650; --g2: #a67600; }
+  .cell.t5 { --g1: #cf85ff; --g2: #46088f; }
+  .cell:not(.bomb) {
+    background:
+      radial-gradient(circle at 26% 20%, #fff 0 4%, rgba(255,255,255,0) 7%),            /* specular dot */
+      radial-gradient(ellipse at 50% 125%, rgba(255,255,255,.4), rgba(255,255,255,0) 55%), /* bounce light */
+      linear-gradient(var(--g1), var(--g2));
+  }
+  .cell {
+    box-shadow:
+      inset 0 3px 5px rgba(255,255,255,.75),
+      inset 0 -9px 12px rgba(0,0,0,.35),
+      inset 0 0 0 2px rgba(255,255,255,.18),
+      0 6px 12px rgba(0,0,0,.5),
+      0 0 14px color-mix(in srgb, var(--c) 45%, transparent);
+  }
+  .cell::before {                                   /* glass shine across the top */
+    top: 5%; left: 12%; right: 12%; height: 42%;
+    background: linear-gradient(rgba(255,255,255,.9), rgba(255,255,255,.08));
+    border-radius: 50% 50% 50% 50% / 80% 80% 20% 20%;
+  }
+  .cell img, .cell span { filter: drop-shadow(0 3px 3px rgba(0,0,0,.45)); }
+  /* Photos: glass sweep over the picture */
+  .cell.photo:not(.bomb) { background: #241a4a; }
+  .cell.photo::before {
+    inset: 3px; height: auto; opacity: 1; border-radius: 13px;
+    background:
+      linear-gradient(155deg, rgba(255,255,255,.65) 0%, rgba(255,255,255,.18) 36%, rgba(255,255,255,0) 37%),
+      linear-gradient(to top, rgba(0,0,0,.28), rgba(0,0,0,0) 35%);
+  }
+  .cell.photo img { filter: saturate(1.15) contrast(1.05); }
+
+  /* ===== Vivid jewel finish + animated glint ===== */
+  .cell.t0 { --hi: #ff6a86; --g1: #ff1744; --g2: #80001c; }   /* ruby */
+  .cell.t1 { --hi: #5aa2ff; --g1: #1e6bff; --g2: #001a7a; }   /* sapphire */
+  .cell.t2 { --hi: #3dff9a; --g1: #00c853; --g2: #004d22; }   /* emerald */
+  .cell.t3 { --hi: #ffa040; --g1: #ff7a00; --g2: #9c2400; }   /* fire opal */
+  .cell.t4 { --hi: #ffe14d; --g1: #ffc400; --g2: #8a5200; }   /* gold */
+  .cell.t5 { --hi: #c77dff; --g1: #a640ff; --g2: #32006b; }   /* amethyst */
+  .cell:not(.bomb) {
+    background:
+      linear-gradient(110deg, rgba(255,255,255,0) 42%, rgba(255,255,255,.85) 50%, rgba(255,255,255,0) 58%),   /* moving glint */
+      radial-gradient(circle at 27% 21%, #fff 0 5%, rgba(255,255,255,0) 8%),                                    /* specular dot */
+      radial-gradient(ellipse at 50% 125%, color-mix(in srgb, var(--hi) 65%, transparent), transparent 55%),   /* coloured rim light */
+      radial-gradient(ellipse at 50% 30%, var(--hi) 0%, var(--g1) 45%, var(--g2) 100%);                        /* deep jewel body */
+    background-size: 250% 100%, 100% 100%, 100% 100%, 100% 100%;
+    background-repeat: no-repeat;
+    background-position: 90% 0, 0 0, 0 0, 0 0;
+  }
+  .cell {
+    box-shadow:
+      inset 0 2px 3px rgba(255,255,255,.6),
+      inset 0 -10px 14px rgba(0,0,0,.5),
+      inset 0 0 0 2px rgba(255,255,255,.12),
+      0 6px 12px rgba(0,0,0,.6),
+      0 0 16px color-mix(in srgb, var(--c) 55%, transparent);
+  }
+  .cell::before {
+    top: 6%; left: 14%; right: 14%; height: 34%;
+    background: linear-gradient(rgba(255,255,255,.72), rgba(255,255,255,.04));
+    border-radius: 50% 50% 50% 50% / 90% 90% 25% 25%;
+  }
+  .cell:not(.pop):not(.zap):not(.boom):not(.photo):not(.bomb) {
+    animation: glint 4s linear infinite; animation-delay: calc(var(--d, 0s) * -1);
+  }
+  @keyframes glint {
+    0%, 55% { background-position: 90% 0, 0 0, 0 0, 0 0; }
+    100%    { background-position: 10% 0, 0 0, 0 0, 0 0; }
+  }
+  /* Photos: glass sweep + moving glint over the picture */
+  .cell.photo:not(.bomb) { background: #241a4a; }
+  .cell.photo::before {
+    inset: 3px; height: auto; border-radius: 13px;
+    background:
+      linear-gradient(110deg, rgba(255,255,255,0) 42%, rgba(255,255,255,.8) 50%, rgba(255,255,255,0) 58%),
+      linear-gradient(155deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,.12) 34%, rgba(255,255,255,0) 35%),
+      linear-gradient(to top, rgba(0,0,0,.3), rgba(0,0,0,0) 35%);
+    background-size: 250% 100%, 100% 100%, 100% 100%;
+    background-repeat: no-repeat;
+    background-position: 90% 0, 0 0, 0 0;
+    animation: glint 4s linear infinite; animation-delay: calc(var(--d, 0s) * -1);
+  }
 </style>
 </head>
 <body>
@@ -193,12 +281,12 @@
 
   /* ---- CANDY CONFIG: put your own pictures in /images with these names ---- */
   const CANDIES = [
-    { name: 'Mom Heart',     color: '#e5484d', emoji: '❤️', img: 'images/candy1.png' },
-    { name: 'Sparkle Globe', color: '#3b9ae8', emoji: '🔮', img: 'images/candy2.png' },
-    { name: 'Lucky Clover',  color: '#2fa36b', emoji: '🍀', img: 'images/candy3.png' },
-    { name: 'Warm Sun',      color: '#f08a24', emoji: '☀️', img: 'images/candy4.png' },
-    { name: 'Gold Star',     color: '#e8b730', emoji: '⭐', img: 'images/candy5.png' },
-    { name: 'Purple Lantern',color: '#8b4fe0', emoji: '🏮', img: 'images/candy6.png' }
+    { name: 'Mom Heart',     color: '#ff1744', emoji: '❤️', img: 'images/candy1.png' },
+    { name: 'Sparkle Globe', color: '#1e6bff', emoji: '🔮', img: 'images/candy2.png' },
+    { name: 'Lucky Clover',  color: '#00c853', emoji: '🍀', img: 'images/candy3.png' },
+    { name: 'Warm Sun',      color: '#ff7a00', emoji: '☀️', img: 'images/candy4.png' },
+    { name: 'Gold Star',     color: '#ffc400', emoji: '⭐', img: 'images/candy5.png' },
+    { name: 'Purple Lantern',color: '#a640ff', emoji: '🏮', img: 'images/candy6.png' }
   ];
 
   const $ = id => document.getElementById(id);
@@ -462,7 +550,7 @@
       const cls = ['cell', bomb ? '' : 't' + g.t, !bomb && imgOK[g.t] ? 'photo' : '', g.s || '', sel === i ? 'sel' : '', popping.has(i) ? 'pop' : ''].join(' ');
       const inner = bomb ? (bombImgOK ? '<img src="images/cake-bomb.png" alt="">' : '<span>🎂</span>') : imgOK[g.t] ? `<img src="${c.img}" alt="">`
         : g.t === 0 ? '<span class="mom">MOM</span>' : `<span>${c.emoji}</span>`;
-      return `<div class="${cls}" data-i="${i}" style="--c:${c.color}">${inner}</div>`;
+      return `<div class="${cls}" data-i="${i}" style="--c:${c.color};--d:${((i * 7) % 13) * 0.3}s">${inner}</div>`;
     }).join('');
     $('score').textContent = score;
     $('moves').textContent = moves;
