@@ -247,6 +247,14 @@
     filter: none;
   }
   .cell.bomb img { width: 82%; height: 82%; object-fit: contain; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 3px 3px rgba(0,0,0,.45)); }
+
+  /* ===== Candy pictures: no white ring, a bit bigger ===== */
+  :root { --badge-size: 64%; }
+  .cell img { border: 0; box-shadow: 0 3px 6px rgba(0,0,0,.5); }
+
+  /* ===== Win popup: wide rectangle photo ===== */
+  .avatar.big { width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 16px; border: 3px solid #e5484d; margin: 0 0 14px; }
+  .modal { max-width: 460px; }
 </style>
 </head>
 <body>
@@ -254,9 +262,9 @@
   <!-- Floating background: apples, cakes and moons -->
   <div class="bgfx" id="bgfx"></div>
 
-  <!-- Banner: put your photo at images/banner-amma.jpg -->
+  <!-- Banner: put your photo at images/mom.jpeg -->
   <div class="banner">
-    <div class="avatar"><span>🎂</span><img src="images/banner-amma.jpg" alt="Amma" onerror="this.style.display='none'"></div>
+    <div class="avatar"><span>💖</span><img src="images/mom.jpeg" alt="Amma" onerror="this.style.display='none'"></div>
     <h1>Happy Birthday Amma!</h1>
   </div>
 
@@ -310,12 +318,12 @@
 
   /* ---- CANDY CONFIG: put your own pictures in /images with these names ---- */
   const CANDIES = [
-    { name: 'Mom Heart',     color: '#ff1744', emoji: '❤️', img: 'candy1.png' },
-    { name: 'Sparkle Globe', color: '#1e6bff', emoji: '🔮', img: 'candy2.png' },
-    { name: 'Lucky Clover',  color: '#00c853', emoji: '🍀', img: 'candy3.png' },
-    { name: 'Warm Sun',      color: '#ff7a00', emoji: '☀️', img: 'candy4.png' },
-    { name: 'Gold Star',     color: '#ffc400', emoji: '⭐', img: 'candy5.png' },
-    { name: 'Purple Lantern',color: '#a640ff', emoji: '🏮', img: 'candy6.png' }
+    { name: 'Mom Heart',     color: '#ff1744', emoji: '❤️', img: 'images/candy1.png' },
+    { name: 'Sparkle Globe', color: '#1e6bff', emoji: '🔮', img: 'images/candy2.png' },
+    { name: 'Lucky Clover',  color: '#00c853', emoji: '🍀', img: 'images/candy3.png' },
+    { name: 'Warm Sun',      color: '#ff7a00', emoji: '☀️', img: 'images/candy4.png' },
+    { name: 'Gold Star',     color: '#ffc400', emoji: '⭐', img: 'images/candy5.png' },
+    { name: 'Purple Lantern',color: '#a640ff', emoji: '🏮', img: 'images/candy6.png' }
   ];
 
   const $ = id => document.getElementById(id);
