@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Amma!</title>
+<style>
+  :root { --cell: min(74px, 11.5vw); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 16px 10px 40px;
+    background: radial-gradient(circle at 50% 0%, #2a1650, #0b0a1f 70%);
+    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; color: #e8e8f0;
+    display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
+  }
+  /* Banner with photo */
+  .banner {
+    display: flex; align-items: center; gap: 14px; margin: 6px 0 18px;
+    padding: 8px 28px 8px 10px; border-radius: 40px;
+    background: linear-gradient(90deg, #d6459a, #e5484d); border: 2px solid #ffb3d1;
+    box-shadow: 0 8px 28px rgba(229, 72, 77, .4);
+  }
+  .banner h1 { margin: 0; font-size: clamp(1.1rem, 4.5vw, 1.8rem); color: #fff; letter-spacing: 1px; text-transform: uppercase; }
+  .avatar {
+    position: relative; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; flex: none;
+    border: 3px solid #fff; background: #ffd1e3; display: grid; place-items: center; font-size: 2rem;
+  }
+  .avatar.big { width: 130px; height: 130px; margin: 0 auto 10px; font-size: 3.5rem; border-color: #e5484d; }
+  .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  /* Board */
+  .stage { position: relative; padding: 18px; border-radius: 28px; background: #120d2b; }
+  .deco { position: absolute; font-size: 2.2rem; opacity: .85; pointer-events: none; }
+  .d1 { left: -6px; bottom: -8px; } .d2 { right: -6px; bottom: -8px; font-size: 2.6rem; } .d3 { right: -4px; top: -10px; }
+  .board {
+    display: grid; grid-template-columns: repeat(7, var(--cell)); grid-template-rows: repeat(7, var(--cell));
+    gap: 4px; padding: 8px; border: 4px solid #d6459a; border-radius: 22px;
+    background: #1a1238; touch-action: none; user-select: none;
+  }
+  .cell {
+    position: relative; border-radius: 14px; display: grid; place-items: center; cursor: pointer;
+    font-size: calc(var(--cell) * .55); transition: transform .15s;
+    background: color-mix(in srgb, var(--c) 28%, #241a4a); border: 2px solid var(--c);
+  }
+  .cell img { width: 88%; height: 88%; object-fit: contain; pointer-events: none; }
+  .cell span { pointer-events: none; }
+  .cell.sel { transform: scale(1.1); box-shadow: 0 0 0 3px #fff; z-index: 2; }
+  .cell.pop { animation: pop .26s forwards; }
+  .cell.bomb { --c: gold; background: linear-gradient(135deg, #ffd45e, #ff6fa5); border-style: dashed; animation: pulse .8s infinite alternate; }
+  .cell.row::after, .cell.col::after { content: ''; position: absolute; background: #fff; opacity: .8; border-radius: 4px; pointer-events: none; }
+  .cell.row::after { left: 4px; right: 4px; top: calc(50% - 4px); height: 8px; }
+  .cell.col::after { top: 4px; bottom: 4px; left: calc(50% - 4px); width: 8px; }
+  @keyframes pop { to { transform: scale(0); opacity: 0; } }
+  @keyframes pulse { to { transform: scale(1.07); } }
+
+  /* Control panel */
+  .panel { width: min(100%, 640px); margin-top: 22px; background: #25262b; border-radius: 18px; overflow: hidden; }
+  .stats { display: grid; grid-template-columns: 2fr 1fr 1fr .8fr; text-align: center; padding: 14px 8px; gap: 6px; }
+  .stats small { display: block; color: #9a9aa5; font-size: .85rem; }
+  .stats b { font-size: 1.25rem; }
+  .audio { background: none; border: 0; font-size: 1.4rem; cursor: pointer; color: #5b8cff; }
+  .specials { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-block: 1px solid #333; overflow-x: auto; white-space: nowrap; font-size: .85rem; color: #9a9aa5; }
+  .pill { padding: 4px 12px; border-radius: 20px; border: 1px solid; }
+  .p4 { color: #ffa6d0; background: #3d1530; border-color: #c2377c; }
+  .p5 { color: #ffd45e; background: #3a2a10; border-color: #b5791b; }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 5px; }
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px; padding: 16px; align-items: center; }
+  .controls label { font-size: 1.05rem; color: #b0b0bb; display: block; margin-bottom: 8px; }
+  input[type=range] { width: 100%; accent-color: #4a6cf7; }
+  .seg { display: flex; background: #33353c; border-radius: 30px; padding: 4px; }
+  .seg button { flex: 1; border: 0; padding: 10px 6px; border-radius: 26px; background: none; color: #aaa; font-weight: 600; cursor: pointer; font-size: .95rem; }
+  .seg button.on { background: #4a6cf7; color: #fff; }
+  .newbtn { background: #4a6cf7; color: #fff; border: 0; padding: 12px 24px; border-radius: 30px; font-size: 1.05rem; font-weight: 700; cursor: pointer; justify-self: start; }
+  .hint { color: #9a9aa5; text-align: right; font-size: .9rem; }
+
+  /* Modal */
+  .overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .7); display: grid; place-items: center; z-index: 50; opacity: 0; pointer-events: none; transition: opacity .4s; }
+  .overlay.active { opacity: 1; pointer-events: auto; }
+  .modal { background: #fff; color: #444; padding: 30px; border-radius: 24px; text-align: center; max-width: 420px; width: 90%; transform: scale(.8); transition: transform .4s; }
+  .overlay.active .modal { transform: scale(1); }
+  .modal h2 { color: #e5484d; font-size: 2rem; margin: 0 0 8px; }
+  .modal button { background: #e5484d; color: #fff; border: 0; padding: 12px 34px; border-radius: 30px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 14px; }
+  .confetti { position: fixed; top: -30px; font-size: 1.8rem; z-index: 60; pointer-events: none; animation: fall 3.5s linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+  @media (max-width: 520px) { .controls { grid-template-columns: 1fr; } .hint { text-align: left; } }
+
+  /* ===== Glossy 3D theme ===== */
+  .stage { background: #1a122c; border: 2px solid #2d2244; box-shadow: 0 20px 50px rgba(0,0,0,.6), inset 0 0 20px rgba(255,255,255,.05); }
+  .board { background: #23183a; box-shadow: 0 0 0 3px #ff3377, inset 0 0 20px rgba(0,0,0,.8); border-color: #150d22; }
+  .banner { border-radius: 12px; padding: 12px 44px 12px 14px; position: relative;
+    background: linear-gradient(180deg, #ff4b72, #d61c4e); border: 2px solid #ff7b99;
+    box-shadow: 0 8px 0 #9e0c32, 0 10px 20px rgba(0,0,0,.4); }
+  .banner::before, .banner::after { content: ''; position: absolute; top: 6px; border-style: solid; z-index: -1; }
+  .banner::before { left: -22px; border-width: 18px 22px 18px 0; border-color: #9e0c32 transparent #9e0c32 transparent; }
+  .banner::after { right: -22px; border-width: 18px 0 18px 22px; border-color: #9e0c32 transparent #9e0c32 transparent; }
+  .banner h1 { text-shadow: 0 2px 4px rgba(0,0,0,.4); }
+  .cell { border: 0; box-shadow: inset 0 4px 4px rgba(255,255,255,.4), inset 0 -6px 8px rgba(0,0,0,.4), 0 6px 10px rgba(0,0,0,.5); }
+  .cell::before { content: ''; position: absolute; top: 4px; left: 8px; right: 8px; height: 35%; pointer-events: none;
+    background: linear-gradient(rgba(255,255,255,.6), rgba(255,255,255,0)); border-radius: 50% / 100% 100% 0 0; }
+  .cell.t0 { background: linear-gradient(#ff3366, #b3002d); border-radius: 50% 50% 12px 12px; }
+  .cell.t1 { background: linear-gradient(#3895ff, #0044cc); border-radius: 50%; }
+  .cell.t2 { background: linear-gradient(#00db80, #007d40); border-radius: 24px 8px 24px 8px; }
+  .cell.t3 { background: linear-gradient(#ff8c00, #cc4400); border-radius: 50% 50% 40% 40%; }
+  .cell.t4 { background: linear-gradient(#ffd000, #b38600); border-radius: 50% 50% 50% 10px; rotate: -45deg; }
+  .cell.t4 > * { rotate: 45deg; }
+  .cell.t5 { background: linear-gradient(#b657ff, #5b11a8); border-radius: 12px 12px 50% 50%; }
+  .cell span { filter: drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+  .cell .mom { font-size: .9rem; font-weight: 800; background: #fff; color: #d61c4e; padding: 2px 6px; border-radius: 6px; }
+  .cell.bomb { border: 2px solid #fff; box-shadow: 0 0 15px #ffd700, inset 0 0 10px #ffd700; }
+
+  /* ===== Pictures, blasts, beams ===== */
+  :root { --fit: cover; }   /* use "contain" if your pictures are transparent gems/cut-outs */
+  .stats { grid-template-columns: 2fr 1fr 1fr 1.3fr; }
+  .audio.off { opacity: .35; }
+  .cell.photo { rotate: none; border: 3px solid var(--c); border-radius: 16px; background: #241a4a; }
+  .cell.photo > * { rotate: none; }
+  .cell.photo img { width: 100%; height: 100%; object-fit: var(--fit); border-radius: 12px; }
+  .cell.photo::before { opacity: .45; }
+  .cell.row::after, .cell.col::after {
+    inset: 5px; width: auto; height: auto; opacity: 1; z-index: 2; border-radius: 0; box-shadow: none;
+    background: linear-gradient(#fff, #fff) center / 100% 7px no-repeat, linear-gradient(#fff, #fff) center / 7px 100% no-repeat;
+    filter: drop-shadow(0 0 4px #fff);
+  }
+  .cell.t4.row::after { rotate: 45deg; }
+  .cell.photo.t4.row::after { rotate: none; }
+  .cell.boom { animation: boom .7s forwards; z-index: 5; }
+  .cell.zap { animation: zap .55s; }
+  @keyframes boom { 0% { scale: 1; } 35% { scale: 1.5; rotate: 25deg; } 100% { scale: 1.2; rotate: 360deg; } }
+  @keyframes zap { 50% { filter: brightness(2.4); scale: 1.18; } }
+  .beam { position: fixed; height: 7px; margin-top: -3px; transform-origin: 0 50%; z-index: 40; pointer-events: none; border-radius: 6px;
+    background: linear-gradient(90deg, #fff, #ffd45e, #ff6fa5, #8b4fe0); box-shadow: 0 0 10px #ffd45e, 0 0 18px #ff6fa5;
+    animation: beam .65s ease-out forwards; }
+  @keyframes beam { 0% { scale: 0 1; opacity: 1; } 35% { scale: 1 1; opacity: 1; } 100% { scale: 1 1; opacity: 0; } }
+  .particle { position: fixed; width: 9px; height: 9px; margin: -4px; border-radius: 50%; pointer-events: none; z-index: 40; animation: burst .6s ease-out forwards; }
+  @keyframes burst { to { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+</style>
+</head>
+<body>
+
+  <!-- Banner: put your photo at images/banner-amma.jpg -->
+  <div class="banner">
+    <div class="avatar"><span>🎂</span><img src="images/banner-amma.jpg" alt="Amma" onerror="this.style.display='none'"></div>
+    <h1>Happy Birthday Amma!</h1>
+  </div>
+
+  <div class="stage">
+    <div class="deco d1">🎁</div><div class="deco d2">🫙</div><div class="deco d3">🎈</div>
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="panel">
+    <div class="stats">
+      <div><small>Score</small><b><span id="score">0</span> / <span id="targetShow">4174</span></b></div>
+      <div><small>Moves</small><b id="moves">25</b></div>
+      <div><small>Streak</small><b id="streak">Ready</b></div>
+      <div><small>Sound</small><button class="audio" id="audioBtn" title="Sound effects on/off">🔊</button><button class="audio" id="musicBtn" title="Music on/off">🎵</button></div>
+    </div>
+    <div class="specials" id="legend">
+      <span>💖 Specials:</span>
+      <span class="pill p4">Match 4: Row + Column Blast</span>
+      <span class="pill p5">Match 5: Cake Bomb</span>
+    </div>
+    <div class="controls">
+      <div>
+        <label>Target Score: <b id="targetLabel">4174</b> pts</label>
+        <input type="range" id="target" min="1000" max="8000" step="50" value="4174">
+      </div>
+      <div>
+        <label>Game Mode</label>
+        <div class="seg">
+          <button class="on" data-moves="25">Standard (25)</button>
+          <button data-moves="35">Relaxed (35)</button>
+        </div>
+      </div>
+      <button class="newbtn" id="newBtn">✨ New Game</button>
+      <div class="hint">Match 4 blasts a row + column, Match 5 makes a Cake Bomb! Tap two candies or swipe to swap.</div>
+    </div>
+  </div>
+
+  <!-- Win / lose popup: put your photo at images/win-photo.jpg -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <div class="avatar big"><span id="modalEmoji">🎂</span><img src="images/win-photo.jpg" alt="" onerror="this.style.display='none'"></div>
+      <h2 id="modalTitle"></h2>
+      <p id="modalText"></p>
+      <button id="againBtn">Play Again</button>
+    </div>
+  </div>
+
+<script>
+  const N = 7, SIZE = N * N;
+  const POINTS_PER_TILE = 30, STREAK_BONUS = 50;   // tweak scoring here
+
+  /* ---- CANDY CONFIG: put your own pictures in /images with these names ---- */
+  const CANDIES = [
+    { name: 'Mom Heart',     color: '#e5484d', emoji: '❤️', img: 'images/candy1.png' },
+    { name: 'Sparkle Globe', color: '#3b9ae8', emoji: '🔮', img: 'images/candy2.png' },
+    { name: 'Lucky Clover',  color: '#2fa36b', emoji: '🍀', img: 'images/candy3.png' },
+    { name: 'Warm Sun',      color: '#f08a24', emoji: '☀️', img: 'images/candy4.png' },
+    { name: 'Gold Star',     color: '#e8b730', emoji: '⭐', img: 'images/candy5.png' },
+    { name: 'Purple Lantern',color: '#8b4fe0', emoji: '🏮', img: 'images/candy6.png' }
+  ];
+
+  const $ = id => document.getElementById(id);
+  const boardEl = $('board');
+  let grid = [], score = 0, moves = 25, maxMoves = 25, target = 4174;
+  let streak = 0, busy = false, over = false, sel = null, popping = new Set();
+  const imgOK = [];
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const rc = i => [Math.floor(i / N), i % N];
+  const adj = (a, b) => b >= 0 && b < SIZE && Math.abs(rc(a)[0] - rc(b)[0]) + Math.abs(rc(a)[1] - rc(b)[1]) === 1;
+  const rand = () => ({ t: Math.floor(Math.random() * CANDIES.length), s: null });
+
+  // Legend + image preload (falls back to emoji if an image is missing)
+  CANDIES.forEach((c, i) => {
+    $('legend').insertAdjacentHTML('beforeend', `<span><i class="dot" style="background:${c.color}"></i>${c.name}</span>`);
+    const im = new Image();
+    im.onload = () => { imgOK[i] = true; render(); };
+    im.src = c.img;
+  });
+
+  /* ---- Cake bomb picture (optional): images/cake-bomb.png ---- */
+  let bombImgOK = false;
+  { const im = new Image(); im.onload = () => { bombImgOK = true; render(); }; im.src = 'images/cake-bomb.png'; }
+
+  /* ---- Happy sounds (all made in code, no files needed) ---- */
+  let audioOn = true, musicOn = true, unlocked = false, ac;
+  const getAC = () => { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; };
+  function note(f, t, d, type = 'sine', v = .15) {
+    const a = getAC(), o = a.createOscillator(), g = a.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(v, t + .015);
+    g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + d + .05);
+  }
+  const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760];
+  const sfx = fn => { if (!audioOn) return; try { fn(getAC().currentTime); } catch (e) {} };
+  const sfxSwap = () => sfx(t => note(660, t, .09, 'sine', .12));
+  // Matches play a sparkly chime that climbs higher with every chain reaction
+  const sfxMatch = s => sfx(t => {
+    const b = Math.min(s - 1, 7);
+    [0, 1, 2].forEach(n => { const f = SCALE[b + n]; note(f, t + n * .07, .35, 'triangle', .14); note(f * 2, t + n * .07, .25, 'sine', .05); });
+  });
+  // Striped blast: quick glittery run up the scale
+  const sfxStripe = () => sfx(t => SCALE.forEach((f, n) => note(f * (n > 4 ? 2 : 1), t + n * .035, .22, 'triangle', .1)));
+  // Cake bomb: big rising arpeggio + sparkly chord
+  const sfxBomb = () => sfx(t => {
+    [261.63, 329.63, 392, 523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98, 2093].forEach((f, n) => note(f, t + n * .055, .3, 'triangle', .12));
+    [523.25, 659.25, 783.99, 1046.5].forEach(f => note(f, t + .65, .8, 'triangle', .1));
+  });
+  // Win: fanfare + "Happy Birthday to you" melody
+  const HB = [[392,.2],[392,.2],[440,.4],[392,.4],[523.25,.4],[493.88,.8],
+              [392,.2],[392,.2],[440,.4],[392,.4],[587.33,.4],[523.25,.8],
+              [392,.2],[392,.2],[783.99,.4],[659.25,.4],[523.25,.4],[493.88,.4],[440,.8],
+              [698.46,.2],[698.46,.2],[659.25,.4],[523.25,.4],[587.33,.4],[523.25,1]];
+  const sfxWin = () => sfx(t => {
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, n) => note(f, t + n * .1, .9, 'triangle', .13));
+    let tt = t + 1.3;
+    HB.forEach(([f, d]) => { note(f, tt, d + .2, 'triangle', .16); note(f * 2, tt, d, 'sine', .04); tt += d; });
+  });
+
+  /* ---- Background music: cheerful synth loop, or your own audio/music.mp3 ---- */
+  const MUSIC_FILE = 'audio/music.mp3', STEP = .2;
+  const MEL = [659,784,1047,784,659,784,880,784,  880,1047,880,784,659,0,587,659,
+               880,784,698,659,698,880,1047,880,   784,988,784,587,659,587,523,0];
+  const BASS = [130.81, 110, 87.31, 98];
+  let musicTimer = null, mEl = null, tried = false, mStep = 0, mNext = 0;
+  function startSynth() {
+    if (musicTimer) return;
+    const a = getAC(); mNext = a.currentTime + .1;
+    musicTimer = setInterval(() => {
+      while (mNext < a.currentTime + .3) {
+        const s = mStep % 32;
+        if (MEL[s]) note(MEL[s], mNext, .3, 'triangle', .045);
+        if (s % 4 === 0) note(BASS[Math.floor(s / 8)], mNext, .45, 'sine', .08);
+        if (s % 2 === 1) note(2000, mNext, .03, 'square', .006);
+        mStep++; mNext += STEP;
+      }
+    }, 60);
+  }
+  function stopMusic() {
+    clearInterval(musicTimer); musicTimer = null;
+    if (mEl) mEl.pause();
+  }
+  function startMusic() {
+    if (!musicOn || !unlocked) return;
+    if (mEl) { mEl.play().catch(() => {}); return; }
+    if (!tried) {
+      tried = true;
+      const el = new Audio(MUSIC_FILE); el.loop = true; el.volume = .45;
+      el.addEventListener('canplaythrough', () => { mEl = el; clearInterval(musicTimer); musicTimer = null; if (musicOn) el.play().catch(() => {}); }, { once: true });
+      el.load();
+    }
+    startSynth();
+  }
+  document.addEventListener('pointerdown', () => { unlocked = true; startMusic(); }, { once: true });
+
+  /* ---- Particles & cake-bomb beams ---- */
+  const center = el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
+  function burst(i, n = 8, rainbow = false) {
+    const el = boardEl.children[i]; if (!el) return;
+    const { x, y } = center(el);
+    const cols = ['#ffd45e', '#ff6fa5', '#7ee0ff', '#9cff9c', '#c79bff'];
+    const base = (grid[i] && CANDIES[grid[i].t]) ? CANDIES[grid[i].t].color : '#ffd45e';
+    for (let k = 0; k < n; k++) {
+      const p = document.createElement('div'); p.className = 'particle';
+      const ang = Math.random() * 6.283, d = 35 + Math.random() * (rainbow ? 110 : 55);
+      p.style.cssText = `left:${x}px;top:${y}px;background:${rainbow ? cols[k % 5] : (k % 2 ? '#fff' : base)};--tx:${Math.cos(ang) * d}px;--ty:${Math.sin(ang) * d}px`;
+      document.body.append(p); setTimeout(() => p.remove(), 650);
+    }
+  }
+  // Cake bomb: spins, shoots a rainbow beam to every candy of the chosen colour, then they all pop
+  async function cakeBurst(bi, targets) {
+    sfxBomb();
+    const el = boardEl.children[bi]; el.classList.add('boom');
+    const from = center(el);
+    targets.forEach(i => {
+      if (i === bi) return;
+      const cell = boardEl.children[i], to = center(cell);
+      const dx = to.x - from.x, dy = to.y - from.y;
+      const beam = document.createElement('div'); beam.className = 'beam';
+      beam.style.cssText = `left:${from.x}px;top:${from.y}px;width:${Math.hypot(dx, dy)}px;transform:rotate(${Math.atan2(dy, dx)}rad)`;
+      document.body.append(beam); setTimeout(() => beam.remove(), 650);
+      cell.classList.add('zap');
+    });
+    burst(bi, 28, true);
+    await sleep(700);
+  }
+
+  /* ---- Matching ---- */
+  function findRuns() {
+    const runs = [];
+    for (let d = 0; d < 2; d++) {
+      for (let a = 0; a < N; a++) {
+        const idx = k => d ? k * N + a : a * N + k;
+        let start = 0;
+        for (let b = 1; b <= N; b++) {
+          const prev = grid[idx(b - 1)], cur = b < N ? grid[idx(b)] : null;
+          if (!(cur && prev.t >= 0 && cur.t === prev.t)) {
+            if (b - start >= 3) runs.push({ d, cells: Array.from({ length: b - start }, (_, k) => idx(start + k)) });
+            start = b;
+          }
+        }
+      }
+    }
+    return runs;
+  }
+
+  function hasMove() {
+    if (grid.some(g => g.s === 'bomb')) return true;
+    for (let i = 0; i < SIZE; i++) {
+      for (const j of [i + 1, i + N]) {
+        if (!adj(i, j)) continue;
+        [grid[i], grid[j]] = [grid[j], grid[i]];
+        const ok = findRuns().length > 0;
+        [grid[i], grid[j]] = [grid[j], grid[i]];
+        if (ok) return true;
+      }
+    }
+    return false;
+  }
+
+  function makeGrid() {
+    do {
+      grid = [];
+      for (let i = 0; i < SIZE; i++) {
+        let t;
+        do { t = Math.floor(Math.random() * CANDIES.length); }
+        while ((i % N >= 2 && grid[i - 1].t === t && grid[i - 2].t === t) ||
+               (i >= 2 * N && grid[i - N].t === t && grid[i - 2 * N].t === t));
+        grid.push({ t, s: null });
+      }
+    } while (!hasMove());
+  }
+
+  function settle() {
+    for (let c = 0; c < N; c++) {
+      const col = [];
+      for (let r = N - 1; r >= 0; r--) if (grid[r * N + c]) col.push(grid[r * N + c]);
+      for (let r = N - 1; r >= 0; r--) grid[r * N + c] = col.shift() || rand();
+    }
+  }
+
+  // Clear a set of tiles (striped candies blast their row/column), score, animate, refill
+  async function clearTiles(clear, spawns) {
+    streak++;
+    let stripeHit = false;
+    const q = [...clear];
+    while (q.length) {
+      const i = q.pop(), g = grid[i];
+      if (!g || !g.s || g.s === 'bomb') continue;
+      const [r, c] = rc(i);
+      stripeHit = true;
+      for (let k = 0; k < N; k++) {                    // Striped candy clears its whole row AND column
+        for (const j of [r * N + k, k * N + c]) if (!clear.has(j)) { clear.add(j); q.push(j); }
+      }
+    }
+    score += clear.size * POINTS_PER_TILE + (streak - 1) * STREAK_BONUS;
+    stripeHit ? sfxStripe() : sfxMatch(streak);
+    popping = clear; render();
+    clear.forEach(i => burst(i, stripeHit ? 12 : 8));
+    await sleep(270);
+    clear.forEach(i => grid[i] = null);
+    spawns.forEach(s => grid[s.at] = { t: s.t, s: s.s });
+    settle(); popping = new Set(); render();
+    await sleep(230);
+  }
+
+  async function resolve(hint = []) {
+    let runs;
+    while ((runs = findRuns()).length) {
+      const clear = new Set(), spawns = [];
+      runs.forEach(r => {
+        r.cells.forEach(i => clear.add(i));
+        if (r.cells.length >= 4) {
+          const at = r.cells.find(i => hint.includes(i)) ?? r.cells[Math.floor(r.cells.length / 2)];
+          const bomb = r.cells.length >= 5;
+          spawns.push({ at, t: bomb ? -1 : grid[at].t, s: bomb ? 'bomb' : 'row' });
+        }
+      });
+      await clearTiles(clear, spawns);
+      hint = [];
+    }
+    streak = 0;
+  }
+
+  async function tryMove(a, b) {
+    if (busy || over || !adj(a, b)) return;
+    busy = true; sel = null;
+    sfxSwap();
+    const A = grid[a], B = grid[b];
+
+    if (A.s === 'bomb' || B.s === 'bomb') {            // Cake Bomb: wipe every candy of the swapped colour
+      moves--;
+      const clear = new Set();
+      const other = A.s === 'bomb' ? B : A;
+      const bi = A.s === 'bomb' ? a : b;
+      grid.forEach((g, i) => { if (g.s === 'bomb' || other.s === 'bomb' || g.t === other.t) clear.add(i); });
+      await cakeBurst(bi, clear);
+      await clearTiles(clear, []);
+      await resolve();
+    } else {
+      [grid[a], grid[b]] = [grid[b], grid[a]]; render();
+      await sleep(160);
+      if (!findRuns().length) { [grid[a], grid[b]] = [grid[b], grid[a]]; render(); busy = false; return; }
+      moves--;
+      await resolve([a, b]);
+    }
+    render();
+    if (score >= target) end(true);
+    else if (moves <= 0) end(false);
+    else if (!hasMove()) { makeGrid(); render(); }
+    busy = false;
+  }
+
+  /* ---- Rendering ---- */
+  function render() {
+    boardEl.innerHTML = grid.map((g, i) => {
+      if (!g) return '<div class="cell"></div>';
+      const bomb = g.s === 'bomb', c = CANDIES[g.t] || CANDIES[0];
+      const cls = ['cell', bomb ? '' : 't' + g.t, !bomb && imgOK[g.t] ? 'photo' : '', g.s || '', sel === i ? 'sel' : '', popping.has(i) ? 'pop' : ''].join(' ');
+      const inner = bomb ? (bombImgOK ? '<img src="images/cake-bomb.png" alt="">' : '<span>🎂</span>') : imgOK[g.t] ? `<img src="${c.img}" alt="">`
+        : g.t === 0 ? '<span class="mom">MOM</span>' : `<span>${c.emoji}</span>`;
+      return `<div class="${cls}" data-i="${i}" style="--c:${c.color}">${inner}</div>`;
+    }).join('');
+    $('score').textContent = score;
+    $('moves').textContent = moves;
+    $('streak').textContent = streak > 1 ? 'x' + streak : 'Ready';
+  }
+
+  /* ---- Input: tap-tap or swipe (works on phone and desktop) ---- */
+  let down = null;
+  boardEl.addEventListener('pointerdown', e => {
+    const el = e.target.closest('.cell');
+    if (el && el.dataset.i) down = { i: +el.dataset.i, x: e.clientX, y: e.clientY };
+  });
+  boardEl.addEventListener('pointerup', e => {
+    if (!down) return;
+    const { i, x, y } = down; down = null;
+    if (busy || over) return;
+    const dx = e.clientX - x, dy = e.clientY - y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > 20) {
+      const j = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? i + 1 : i - 1) : (dy > 0 ? i + N : i - N);
+      tryMove(i, j);
+    } else if (sel === null || !adj(sel, i)) { sel = sel === i ? null : i; render(); }
+    else tryMove(sel, i);
+  });
+
+  /* ---- Win / lose + replay ---- */
+  function confetti() {
+    for (let i = 0; i < 50; i++) {
+      const d = document.createElement('i');
+      d.className = 'confetti';
+      d.textContent = ['🎉', '✨', '🎂', '💖'][i % 4];
+      d.style.left = Math.random() * 100 + 'vw';
+      d.style.animationDelay = Math.random() * 1.5 + 's';
+      document.body.append(d);
+      setTimeout(() => d.remove(), 5000);
+    }
+  }
+
+  function end(win) {
+    over = true;
+    $('modalEmoji').textContent = win ? '🎂' : '💪';
+    $('modalTitle').textContent = win ? 'Happy Birthday Amma! 🎉❤️' : 'So close, Amma!';
+    $('modalText').textContent = win
+      ? `You did it! You scored ${score} points on your special day!`
+      : `You scored ${score} of ${target}. Give it another try!`;
+    $('overlay').classList.add('active');
+    if (win) { stopMusic(); confetti(); sfxWin(); }
+  }
+
+  function newGame() {
+    score = 0; streak = 0; maxMoves = +document.querySelector('.seg .on').dataset.moves;
+    moves = maxMoves; target = +$('target').value; sel = null; over = false; busy = false;
+    $('targetShow').textContent = target;
+    $('overlay').classList.remove('active');
+    makeGrid(); render(); startMusic();
+  }
+
+  $('target').addEventListener('input', e => $('targetLabel').textContent = e.target.value);
+  $('target').addEventListener('change', newGame);
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.seg button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on'); newGame();
+  }));
+  $('newBtn').addEventListener('click', newGame);
+  $('againBtn').addEventListener('click', newGame);
+  $('audioBtn').addEventListener('click', () => { audioOn = !audioOn; $('audioBtn').textContent = audioOn ? '🔊' : '🔇'; });
+  $('musicBtn').addEventListener('click', () => {
+    musicOn = !musicOn; $('musicBtn').classList.toggle('off', !musicOn);
+    musicOn ? startMusic() : stopMusic();
+  });
+
+  newGame();
+</script>
+</body>
+</html>
